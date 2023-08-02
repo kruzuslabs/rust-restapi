@@ -1,6 +1,4 @@
-
-
-#[warn(unused_variables)]
+#[allow(dead_code)]
 pub enum LoggerType {
     Off,
     Error,
