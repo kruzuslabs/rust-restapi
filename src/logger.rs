@@ -1,6 +1,6 @@
 
 
-//TODO! This succks i dont like it needs to be changed.
+#[warn(unused_variables)]
 pub enum LoggerType {
     Off,
     Error,

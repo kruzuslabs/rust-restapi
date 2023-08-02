@@ -8,13 +8,17 @@ use actix_web::{App, HttpServer};
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     //change this feels weird to type.
-    logger::log(LoggerType::Warning);
-
-
+    logger::log(LoggerType::Trace);
+    
     println!("🚀 Server started successfully");
 
-    HttpServer::new(move || App::new().wrap(Logger::default()).service(routes::root))
-        .bind(("127.0.0.1", 8000))?
+    HttpServer::new(move || App::new()
+        .wrap(Logger::default())
+        .service(routes::hello_user)
+        .service(routes::root))
+        
+        .bind("[::1]:8520")?
         .run()
         .await
+     
 }
