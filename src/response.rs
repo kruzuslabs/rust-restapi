@@ -1,4 +1,3 @@
-use chrono::prelude::*;
 use serde::Serialize;
 use uuid::Uuid;
 
@@ -7,9 +6,8 @@ use uuid::Uuid;
 pub struct FilteredUser {
     pub id: Uuid,
     pub username: String,
-    pub content: String,
-    pub createdAt: DateTime<Utc>,
-    pub updatedAt: DateTime<Utc>,
+    pub createdAt: Option<chrono::DateTime<chrono::Utc>>,
+    pub updatedAt: Option<chrono::DateTime<chrono::Utc>>,
 }
 
 #[derive(Serialize, Debug)]

@@ -1,26 +1,67 @@
+mod config;
+mod jwt_auth;
 mod logger;
 mod models;
-mod routes;
 mod response;
+mod routes;
 
-use crate::logger::LoggerType;
+use actix_cors::Cors;
 use actix_web::middleware::Logger;
-use actix_web::{App, HttpServer};
+use actix_web::{http::header, web, App, HttpServer};
+use config::Config;
+use dotenv::dotenv;
+use logger::LoggerType;
+use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
+
+pub struct AppState {
+    db: Pool<Postgres>,
+    env: Config,
+}
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    //change this feels weird to type.
-    logger::log(LoggerType::Trace);
+    logger::log(LoggerType::Debug);
+    dotenv().ok();
+
+    let config = Config::init();
+
+    let pool = match PgPoolOptions::new()
+        .max_connections(10)
+        .connect(&config.database_url)
+        .await
+    {
+        Ok(pool) => {
+            println!("✅Connection to the database is successful!");
+            pool
+        }
+        Err(err) => {
+            println!("🔥 Failed to connect to the database: {:?}", err);
+            std::process::exit(1);
+        }
+    };
 
     println!("🚀 Server started successfully");
 
     HttpServer::new(move || {
+        let cors = Cors::default()
+            .allowed_origin("http://localhost:3000")
+            .allowed_methods(vec!["GET", "POST"])
+            .allowed_headers(vec![
+                header::CONTENT_TYPE,
+                header::AUTHORIZATION,
+                header::ACCEPT,
+            ])
+            .supports_credentials();
         App::new()
+            .app_data(web::Data::new(AppState {
+                db: pool.clone(),
+                env: config.clone(),
+            }))
+            .configure(routes::config)
+            .wrap(cors)
             .wrap(Logger::default())
-            .service(routes::hello_user)
-            .service(routes::root)
     })
-    .bind("[::1]:8520")?
+    .bind(("127.0.0.1", 8000))?
     .run()
     .await
 }
