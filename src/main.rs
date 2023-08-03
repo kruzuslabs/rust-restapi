@@ -20,7 +20,7 @@ pub struct AppState {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    logger::log(LoggerType::Debug);
+    logger::log(LoggerType::Info);
     dotenv().ok();
 
     let config = Config::init();
@@ -31,7 +31,7 @@ async fn main() -> std::io::Result<()> {
         .await
     {
         Ok(pool) => {
-            println!("✅Connection to the database is successful!");
+            println!("✅ Connection to the database is successful! ✅");
             pool
         }
         Err(err) => {

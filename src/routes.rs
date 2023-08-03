@@ -49,8 +49,9 @@ async fn register_user_handler(
         .to_string();
     let query_result = sqlx::query_as!(
         User,
-        "SELECT * FROM users WHERE username = $1",
-        body.username.to_string()
+        "INSERT INTO users (username,hashed_password) VALUES ($1, $2) RETURNING *",
+        body.username.to_string(),
+        hashed_password
     )
     .fetch_one(&data.db)
     .await;
@@ -65,7 +66,7 @@ async fn register_user_handler(
         }
         Err(e) => {
             return HttpResponse::InternalServerError()
-                .json(serde_json::json!({"status": "error","message": format!("{:?}", e)}));
+                .json(serde_json::json!({"status": "error","messageLMAÕ": format!("{:?}", e)}));
         }
     }
 }
