@@ -20,7 +20,7 @@ pub struct AppState {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    logger::log(LoggerType::Info);
+    logger::log(LoggerType::Trace);
     dotenv().ok();
 
     let config = Config::init();
@@ -57,11 +57,12 @@ async fn main() -> std::io::Result<()> {
                 db: pool.clone(),
                 env: config.clone(),
             }))
+            
             .configure(routes::config)
             .wrap(cors)
             .wrap(Logger::default())
     })
-    .bind(("127.0.0.1", 8000))?
+    .bind("[::1]:8000")?
     .run()
     .await
 }

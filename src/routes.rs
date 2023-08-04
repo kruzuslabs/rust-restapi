@@ -24,6 +24,13 @@ async fn health_checker_handler() -> impl Responder {
     HttpResponse::Ok().json(json!({"status": "success", "message": MESSAGE}))
 }
 
+
+#[get("/not-found")]
+async fn not_found() -> impl Responder {
+
+    HttpResponse::NotFound().json(json!({"404": "not found"}))
+}
+
 #[post("/auth/register")]
 async fn register_user_handler(
     body: web::Json<RegisterUserSchema>,
@@ -178,6 +185,7 @@ pub fn config(conf: &mut web::ServiceConfig) {
         .service(login_user_handler)
         .service(logout_handler)
         .service(get_me_handler);
+        
 
     conf.service(scope);
 }
