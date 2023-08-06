@@ -1,10 +1,21 @@
 use serde::{Deserialize, Serialize};
 
+use validator::Validate;
+
+
+
+//need data validation,
+
 #[allow(non_snake_case)]
-#[derive(Debug, Deserialize, sqlx::FromRow, Serialize, Clone)]
+#[derive(Debug, Deserialize, sqlx::FromRow, Serialize, Clone, Validate)]
 pub struct User {
     pub id: uuid::Uuid,
+
+
+    #[validate(length(min = 4, max = 32))]
     pub username: String,
+
+
     pub hashed_password: String,
 
     pub total_posts: Option<i32>,
