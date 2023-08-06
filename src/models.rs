@@ -1,18 +1,15 @@
 use serde::{Deserialize, Serialize};
 
-use validator::Validate;
 
 
 
 //need data validation,
 
 #[allow(non_snake_case)]
-#[derive(Debug, Deserialize, sqlx::FromRow, Serialize, Clone, Validate)]
+#[derive(Debug, Deserialize, sqlx::FromRow, Serialize, Clone)]
 pub struct User {
     pub id: uuid::Uuid,
 
-
-    #[validate(length(min = 4, max = 32))]
     pub username: String,
 
 

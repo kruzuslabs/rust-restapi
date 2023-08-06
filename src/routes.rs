@@ -31,79 +31,68 @@ async fn not_found() -> impl Responder {
     HttpResponse::NotFound().json(json!({"404": "not found"}))
 }
 
-
 #[post("/auth/register")]
 async fn register_user_handler(
     body: web::Json<RegisterUserSchema>,
     data: web::Data<AppState>,
 ) -> impl Responder {
-    // Automatically validate the `Json` payload using the `validator` crate.
-    // If the validation fails (e.g., the username length is not within the specified bounds),
-    // the endpoint will return a 422 Unprocessable Entity response with validation error details.
+    let exists: bool = sqlx::query("SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)")
+        .bind(body.username.to_string())
+        .fetch_one(&data.db)
+        .await
+        .unwrap()
+        .get(0);
 
-    match body.validate() {
-        Ok(_) => {
-            // Validation successful, continue with your registration logic
-            let exists: bool = sqlx::query("SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)")
-                .bind(body.username.to_string())
-                .fetch_one(&data.db)
-                .await
-                .unwrap()
-                .get(0);
+    if exists {
+        return HttpResponse::Conflict().json(
+            serde_json::json!({"status": "fail","message": "User with that email already exists"}),
+            
+        );
+    }
 
-            if exists {
-                return HttpResponse::Conflict().json(
-                    serde_json::json!({"status": "fail","message": "User with that email already exists"}),
-                );
-            }
+    //need validation.
+    if body.username.len() < 4 {
+        return HttpResponse::Conflict().json(
+            serde_json::json!({"status": "fail","message": "Username is too short"}),
+            
+        );
+    }
 
-            let salt = SaltString::generate(&mut OsRng);
-            let hashed_password = Argon2::default()
-                .hash_password(body.password.as_bytes(), &salt)
-                .expect("Error while hashing password")
-                .to_string();
+    if body.username.len() > 32 {
+        return HttpResponse::Conflict().json(
+            serde_json::json!({"status": "fail","message": "Username is too long"}),
+            
+        );
+    }
 
-            let query_result = sqlx::query_as!(
-                User,
-                "INSERT INTO users (username,hashed_password) VALUES ($1, $2) RETURNING *",
-                body.username.to_string(),
-                hashed_password
-            )
-            .fetch_one(&data.db)
-            .await;
+    let salt = SaltString::generate(&mut OsRng);
+    let hashed_password = Argon2::default()
+        .hash_password(body.password.as_bytes(), &salt)
+        .expect("Error while hashing password")
+        .to_string();
+    let query_result = sqlx::query_as!(
+        User,
+        "INSERT INTO users (username,hashed_password) VALUES ($1, $2) RETURNING *",
+        body.username.to_string(),
+        hashed_password
+    )
+    .fetch_one(&data.db)
+    .await;
 
-            match query_result {
-                Ok(user) => {
-                    let user_response = serde_json::json!({"status": "success","data": serde_json::json!({
-                        "user": filter_user_record(&user)
-                    })});
+    match query_result {
+        Ok(user) => {
+            let user_response = serde_json::json!({"status": "success","data": serde_json::json!({
+                "user": filter_user_record(&user)
+            })});
 
-                    HttpResponse::Ok().json(user_response)
-                }
-                Err(e) => {
-                    HttpResponse::InternalServerError().json(
-                        serde_json::json!({"status": "error","message": format!("{:?}", e)}),
-                    )
-                }
-            }
+            return HttpResponse::Ok().json(user_response);
         }
         Err(e) => {
-            // Validation failed, return validation error response
-            let errors: Vec<String> = e
-                .field_errors()
-                .iter()
-                .map(|(field, errors)| format!("Field '{}' has errors: {:?}", field, errors))
-                .collect();
-
-            HttpResponse::UnprocessableEntity().json(
-                serde_json::json!({"status": "fail","message": errors}),
-            )
+            return HttpResponse::InternalServerError()
+                .json(serde_json::json!({"status": "error","messageLMAÕ": format!("{:?}", e)}));
         }
     }
 }
-
-
-
 #[post("/auth/login")]
 async fn login_user_handler(
     body: web::Json<LoginUserSchema>,

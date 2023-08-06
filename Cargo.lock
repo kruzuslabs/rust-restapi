@@ -456,6 +456,7 @@ dependencies = [
  "sqlx",
  "uuid",
  "validator",
+ "validator_derive",
 ]
 
 [[package]]

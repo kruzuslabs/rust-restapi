@@ -1,9 +1,13 @@
+extern crate validator_derive;
+
+
 mod config;
 mod jwt_auth;
 mod logger;
 mod models;
 mod response;
 mod routes;
+
 
 use actix_cors::Cors;
 use actix_web::middleware::Logger;
