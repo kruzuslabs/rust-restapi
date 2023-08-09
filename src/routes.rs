@@ -24,6 +24,13 @@ async fn health_checker_handler() -> impl Responder {
     HttpResponse::Ok().json(json!({"status": "success", "message": MESSAGE}))
 }
 
+//test
+#[get("/posts")]
+async fn posts(_: jwt_auth::JwtMiddleware) -> impl Responder {
+
+    HttpResponse::Ok().json(json!({"status": "success"}))
+}
+
 #[post("/auth/register")]
 async fn register_user_handler(
     body: web::Json<RegisterUserSchema>,
@@ -169,13 +176,20 @@ async fn get_me_handler(
     data: web::Data<AppState>,
     _: jwt_auth::JwtMiddleware,
 ) -> impl Responder {
+
     let ext = req.extensions();
+ 
+
     let user_id = ext.get::<uuid::Uuid>().unwrap();
+ 
 
     let user = sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", user_id)
         .fetch_one(&data.db)
         .await
         .unwrap();
+
+
+    
 
     let json_response = serde_json::json!({
         "status":  "success",
@@ -188,8 +202,6 @@ async fn get_me_handler(
 }
 
 fn filter_user_record(user: &User) -> FilteredUser {
-
-
     FilteredUser {
         id: user.id.to_owned(),
         username: user.username.to_string(),
@@ -205,6 +217,7 @@ pub fn config(conf: &mut web::ServiceConfig) {
         .service(register_user_handler)
         .service(login_user_handler)
         .service(logout_handler)
+        .service(posts)
         .service(get_me_handler);
         
 

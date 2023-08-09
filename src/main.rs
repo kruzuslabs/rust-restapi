@@ -29,8 +29,10 @@ async fn main() -> std::io::Result<()> {
 
     let config = Config::init();
 
+    //work on this later
     let pool = match PgPoolOptions::new()
         .max_connections(10)
+        
         .connect(&config.database_url)
         .await
     {
@@ -56,6 +58,7 @@ async fn main() -> std::io::Result<()> {
                 header::ACCEPT,
             ])
             .supports_credentials();
+
         App::new()
             .app_data(web::Data::new(AppState {
                 db: pool.clone(),
@@ -68,4 +71,6 @@ async fn main() -> std::io::Result<()> {
     .bind("[::1]:8000")?
     .run()
     .await
+
+
 }

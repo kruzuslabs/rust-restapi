@@ -43,7 +43,7 @@ impl FromRequest for JwtMiddleware {
 
         if token.is_none() {
             let json_error = ErrorResponse {
-                status: "fail".to_string(),
+                status: "error".to_string(),
                 message: "You are not logged in, please provide token".to_string(),
             };
             return ready(Err(ErrorUnauthorized(json_error)));
