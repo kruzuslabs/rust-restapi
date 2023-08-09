@@ -1,8 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-
-
-
 //need data validation,
 
 #[allow(non_snake_case)]
@@ -11,7 +8,6 @@ pub struct User {
     pub id: uuid::Uuid,
 
     pub username: String,
-
 
     pub hashed_password: String,
 

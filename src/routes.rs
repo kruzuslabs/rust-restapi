@@ -24,18 +24,13 @@ async fn health_checker_handler() -> impl Responder {
     HttpResponse::Ok().json(json!({"status": "success", "message": MESSAGE}))
 }
 
-
-#[get("/not-found")]
-async fn not_found() -> impl Responder {
-
-    HttpResponse::NotFound().json(json!({"404": "not found"}))
-}
-
 #[post("/auth/register")]
 async fn register_user_handler(
     body: web::Json<RegisterUserSchema>,
     data: web::Data<AppState>,
 ) -> impl Responder {
+
+    
     let exists: bool = sqlx::query("SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)")
         .bind(body.username.to_string())
         .fetch_one(&data.db)
@@ -66,10 +61,13 @@ async fn register_user_handler(
     }
 
     let salt = SaltString::generate(&mut OsRng);
+
     let hashed_password = Argon2::default()
         .hash_password(body.password.as_bytes(), &salt)
         .expect("Error while hashing password")
         .to_string();
+
+
     let query_result = sqlx::query_as!(
         User,
         "INSERT INTO users (username,hashed_password) VALUES ($1, $2) RETURNING *",
@@ -78,6 +76,8 @@ async fn register_user_handler(
     )
     .fetch_one(&data.db)
     .await;
+
+
 
     match query_result {
         Ok(user) => {
@@ -188,11 +188,14 @@ async fn get_me_handler(
 }
 
 fn filter_user_record(user: &User) -> FilteredUser {
+
+
     FilteredUser {
         id: user.id.to_owned(),
         username: user.username.to_string(),
         createdAt: user.created_at,
         updatedAt: user.updated_at,
+        total_posts: user.total_posts
     }
 }
 

@@ -6,6 +6,7 @@ use uuid::Uuid;
 pub struct FilteredUser {
     pub id: Uuid,
     pub username: String,
+    pub total_posts: Option<i32>,
     pub createdAt: Option<chrono::DateTime<chrono::Utc>>,
     pub updatedAt: Option<chrono::DateTime<chrono::Utc>>,
 }
