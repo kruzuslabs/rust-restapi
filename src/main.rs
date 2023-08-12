@@ -7,6 +7,9 @@ mod models;
 mod response;
 mod routes;
 
+
+use std::io;
+
 use actix_cors::Cors;
 use actix_web::middleware::Logger;
 use actix_web::{http::header, web, App, HttpServer};
@@ -22,7 +25,6 @@ pub struct AppState {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-
     logger::log(LoggerType::Trace);
 
     dotenv().ok();
@@ -32,17 +34,18 @@ async fn main() -> std::io::Result<()> {
     //work on this later
     let pool = match PgPoolOptions::new()
         .max_connections(10)
-        
         .connect(&config.database_url)
+        
         .await
+        
     {
         Ok(pool) => {
             println!("✅ Connection to the database is successful! ✅");
             pool
         }
-        Err(err) => {
-            println!("🔥 Failed to connect to the database: {:?}", err);
-            std::process::exit(1);
+        Err(_) => {
+
+            return Err(io::Error::new(io::ErrorKind::ConnectionRefused, "Database connection error"));
         }
     };
 
@@ -71,6 +74,4 @@ async fn main() -> std::io::Result<()> {
     .bind("[::1]:8000")?
     .run()
     .await
-
-
 }

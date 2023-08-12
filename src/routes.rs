@@ -27,7 +27,6 @@ async fn health_checker_handler() -> impl Responder {
 //test
 #[get("/posts")]
 async fn posts(_: jwt_auth::JwtMiddleware) -> impl Responder {
-
     HttpResponse::Ok().json(json!({"status": "success"}))
 }
 
@@ -36,8 +35,6 @@ async fn register_user_handler(
     body: web::Json<RegisterUserSchema>,
     data: web::Data<AppState>,
 ) -> impl Responder {
-
-    
     let exists: bool = sqlx::query("SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)")
         .bind(body.username.to_string())
         .fetch_one(&data.db)
@@ -48,23 +45,18 @@ async fn register_user_handler(
     if exists {
         return HttpResponse::Conflict().json(
             serde_json::json!({"status": "fail","message": "User with that email already exists"}),
-            
         );
     }
 
     //need validation.
     if body.username.len() < 4 {
-        return HttpResponse::Conflict().json(
-            serde_json::json!({"status": "fail","message": "Username is too short"}),
-            
-        );
+        return HttpResponse::Conflict()
+            .json(serde_json::json!({"status": "fail","message": "Username is too short"}));
     }
 
     if body.username.len() > 32 {
-        return HttpResponse::Conflict().json(
-            serde_json::json!({"status": "fail","message": "Username is too long"}),
-            
-        );
+        return HttpResponse::Conflict()
+            .json(serde_json::json!({"status": "fail","message": "Username is too long"}));
     }
 
     let salt = SaltString::generate(&mut OsRng);
@@ -74,6 +66,7 @@ async fn register_user_handler(
         .expect("Error while hashing password")
         .to_string();
 
+    
 
     let query_result = sqlx::query_as!(
         User,
@@ -83,8 +76,6 @@ async fn register_user_handler(
     )
     .fetch_one(&data.db)
     .await;
-
-
 
     match query_result {
         Ok(user) => {
@@ -100,6 +91,7 @@ async fn register_user_handler(
         }
     }
 }
+
 #[post("/auth/login")]
 async fn login_user_handler(
     body: web::Json<LoginUserSchema>,
@@ -116,6 +108,7 @@ async fn login_user_handler(
 
     let is_valid = query_result.to_owned().map_or(false, |user| {
         let parsed_hash = PasswordHash::new(&user.hashed_password).unwrap();
+
         Argon2::default()
             .verify_password(body.password.as_bytes(), &parsed_hash)
             .map_or(false, |_| true)
@@ -129,8 +122,11 @@ async fn login_user_handler(
     let user = query_result.unwrap();
 
     let now = Utc::now();
+
     let iat = now.timestamp() as usize;
-    let exp = (now + Duration::minutes(60)).timestamp() as usize;
+
+    let exp = (now + Duration::minutes(15)).timestamp() as usize;
+
     let claims: TokenClaims = TokenClaims {
         sub: user.id.to_string(),
         exp,
@@ -167,7 +163,6 @@ async fn logout_handler(_: jwt_auth::JwtMiddleware) -> impl Responder {
     HttpResponse::Ok()
         .cookie(cookie)
         .json(json!({"status": "success"}))
-        
 }
 
 #[get("/users/me")]
@@ -176,20 +171,14 @@ async fn get_me_handler(
     data: web::Data<AppState>,
     _: jwt_auth::JwtMiddleware,
 ) -> impl Responder {
-
     let ext = req.extensions();
- 
 
     let user_id = ext.get::<uuid::Uuid>().unwrap();
- 
 
     let user = sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", user_id)
         .fetch_one(&data.db)
         .await
         .unwrap();
-
-
-    
 
     let json_response = serde_json::json!({
         "status":  "success",
@@ -203,11 +192,11 @@ async fn get_me_handler(
 
 fn filter_user_record(user: &User) -> FilteredUser {
     FilteredUser {
-        id: user.id.to_owned(),
+        id: user.id,
         username: user.username.to_string(),
         createdAt: user.created_at,
         updatedAt: user.updated_at,
-        total_posts: user.total_posts
+        total_posts: user.total_posts,
     }
 }
 
@@ -219,7 +208,6 @@ pub fn config(conf: &mut web::ServiceConfig) {
         .service(logout_handler)
         .service(posts)
         .service(get_me_handler);
-        
 
     conf.service(scope);
 }

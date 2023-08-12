@@ -1,4 +1,7 @@
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
+use sqlx::FromRow;
+use uuid::Uuid;
 
 //need data validation,
 
@@ -18,6 +21,17 @@ pub struct User {
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
 }
+
+#[derive(FromRow, Debug, Serialize, Deserialize)]
+struct Resource {
+    id: i32,
+    title: String,
+    description: Option<String>,
+    content: String,
+    author_id: Uuid,
+    created_at: NaiveDateTime,
+}
+
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TokenClaims {
