@@ -1,10 +1,14 @@
-# Work on this 
+# Use the official Rust image
+FROM rust:latest
 
-FROM rust:1.71.1-alpine3.17
+# Set the working directory inside the container
+WORKDIR /app
 
-COPY ./target/release/backend /usr/bin/
+# Copy the Rust project files into the container
+COPY . .
 
-EXPOSE 8000
+# Compile the Rust project
+RUN cargo build --release
 
-CMD ["backend"]
-
+# Run the compiled executable
+CMD ["target/release/backend"]
