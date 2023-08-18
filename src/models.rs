@@ -2,7 +2,7 @@ use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use uuid::Uuid;
-
+use validator::Validate;
 //need data validation,
 
 #[allow(non_snake_case)]
@@ -32,7 +32,6 @@ struct Resource {
     created_at: NaiveDateTime,
 }
 
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TokenClaims {
     pub sub: String,
@@ -40,9 +39,11 @@ pub struct TokenClaims {
     pub exp: usize,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Validate, Deserialize)]
 pub struct RegisterUserSchema {
+    #[validate(length(min = 4, max = 32))]
     pub username: String,
+
     pub password: String,
 }
 

@@ -7,7 +7,6 @@ mod models;
 mod response;
 mod routes;
 
-
 use std::io;
 
 use actix_cors::Cors;
@@ -35,17 +34,17 @@ async fn main() -> std::io::Result<()> {
     let pool = match PgPoolOptions::new()
         .max_connections(10)
         .connect(&config.database_url)
-        
         .await
-        
     {
         Ok(pool) => {
             println!("✅ Connection to the database is successful! ✅");
             pool
         }
         Err(_) => {
-
-            return Err(io::Error::new(io::ErrorKind::ConnectionRefused, "Database connection error"));
+            return Err(io::Error::new(
+                io::ErrorKind::ConnectionRefused,
+                "Database connection error",
+            ));
         }
     };
 

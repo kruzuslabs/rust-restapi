@@ -16,6 +16,7 @@ use chrono::{prelude::*, Duration};
 use jsonwebtoken::{encode, EncodingKey, Header};
 use serde_json::json;
 use sqlx::Row;
+use validator::Validate;
 
 #[get("/healthchecker")]
 async fn health_checker_handler() -> impl Responder {
@@ -35,6 +36,10 @@ async fn register_user_handler(
     body: web::Json<RegisterUserSchema>,
     data: web::Data<AppState>,
 ) -> impl Responder {
+    if let Err(validation_error) = body.validate() {
+        return HttpResponse::BadRequest().json(validation_error);
+    }
+
     let exists: bool = sqlx::query("SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)")
         .bind(body.username.to_string())
         .fetch_one(&data.db)
@@ -48,27 +53,14 @@ async fn register_user_handler(
         );
     }
 
-    //need validation.
-    if body.username.len() < 4 {
-        return HttpResponse::Conflict()
-            .json(serde_json::json!({"status": "fail","message": "Username is too short"}));
-    }
-
-    if body.username.len() > 32 {
-        return HttpResponse::Conflict()
-            .json(serde_json::json!({"status": "fail","message": "Username is too long"}));
-    }
-
     let salt = SaltString::generate(&mut OsRng);
 
-    let hashed_password = Argon2::default()
+    let hashed_password: String = Argon2::default()
         .hash_password(body.password.as_bytes(), &salt)
         .expect("Error while hashing password")
         .to_string();
 
-    
-
-    let query_result = sqlx::query_as!(
+    let query_result: Result<User, _> = sqlx::query_as!(
         User,
         "INSERT INTO users (username,hashed_password) VALUES ($1, $2) RETURNING *",
         body.username.to_string(),
