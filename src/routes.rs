@@ -15,7 +15,7 @@ use argon2::{
 use chrono::{prelude::*, Duration};
 use jsonwebtoken::{encode, EncodingKey, Header};
 use serde_json::json;
-use sqlx::Row;
+use sqlx::{Executor, Row};
 use validator::Validate;
 
 #[get("/healthchecker")]
@@ -134,7 +134,7 @@ async fn login_user_handler(
 
     let cookie = Cookie::build("token", token.to_owned())
         .path("/")
-        .max_age(ActixWebDuration::new(60 * 60, 0))
+        .max_age(ActixWebDuration::new(30 * 60, 0))
         .http_only(true)
         .secure(true)
         .finish();
