@@ -15,15 +15,8 @@ use argon2::{
 use chrono::{prelude::*, Duration};
 use jsonwebtoken::{encode, EncodingKey, Header};
 use serde_json::json;
-use sqlx::{Executor, Row};
+use sqlx::Row;
 use validator::Validate;
-
-#[get("/healthchecker")]
-async fn health_checker_handler() -> impl Responder {
-    const MESSAGE: &str = "JWT Authentication in Rust using Actix-web, Postgres, and SQLX";
-
-    HttpResponse::Ok().json(json!({"status": "success", "message": MESSAGE}))
-}
 
 //test
 #[get("/posts")]
@@ -117,7 +110,7 @@ async fn login_user_handler(
 
     let iat = now.timestamp() as usize;
 
-    let exp = (now + Duration::minutes(15)).timestamp() as usize;
+    let exp = (now + Duration::minutes(30)).timestamp() as usize;
 
     let claims: TokenClaims = TokenClaims {
         sub: user.id.to_string(),
@@ -194,7 +187,6 @@ fn filter_user_record(user: &User) -> FilteredUser {
 
 pub fn config(conf: &mut web::ServiceConfig) {
     let scope = web::scope("/api")
-        .service(health_checker_handler)
         .service(register_user_handler)
         .service(login_user_handler)
         .service(logout_handler)

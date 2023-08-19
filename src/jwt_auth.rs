@@ -29,6 +29,7 @@ pub struct JwtMiddleware {
 impl FromRequest for JwtMiddleware {
     type Error = ActixWebError;
     type Future = Ready<Result<Self, Self::Error>>;
+
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
         let data = req.app_data::<web::Data<AppState>>().unwrap();
 
@@ -65,6 +66,7 @@ impl FromRequest for JwtMiddleware {
         };
 
         let user_id = uuid::Uuid::parse_str(claims.sub.as_str()).unwrap();
+        
         req.extensions_mut()
             .insert::<uuid::Uuid>(user_id.to_owned());
 
