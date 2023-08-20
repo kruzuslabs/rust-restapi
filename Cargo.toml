@@ -3,11 +3,14 @@ name = "backend"
 version = "0.1.0"
 edition = "2021"
 
+
+
 [profile.release]
 opt-level = "z"  
 lto = true         
 debug = false      
 panic = "abort"   
+
 
 
 [dependencies]
@@ -24,6 +27,7 @@ serde = { version = "1.0.178", features = ["derive"] }
 serde_json = "1.0.104"
 serde_valid = "0.16.3"
 sqlx = { version = "0.7.1", features = ["runtime-async-std-native-tls", "postgres", "chrono", "uuid"] }
+tokio = "1.32.0"
 uuid = { version = "1.4.1", features = ["serde", "v4"] }
 validator = { version = "0.16.1", features = ["phone", "card", "unic", "derive", "indexmap", "derive"] }
 validator_derive = "0.16.0"

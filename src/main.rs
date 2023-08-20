@@ -9,7 +9,7 @@ mod response;
 mod routes;
 
 use std::io;
-use std::thread::sleep;
+
 
 use actix_cors::Cors;
 // use actix_web::middleware::Logger;
@@ -52,7 +52,7 @@ async fn main() -> std::io::Result<()> {
                     retries,
                     retry_delay.as_secs()
                 );
-                sleep(retry_delay);
+                tokio::time::sleep(retry_delay).await;
             }
 
             Err(_) => {
