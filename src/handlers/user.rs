@@ -1,3 +1,3 @@
-pub mod register {
-    pub fn user() {}
+pub fn register() {
+    //todo
 }

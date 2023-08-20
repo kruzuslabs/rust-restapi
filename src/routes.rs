@@ -18,6 +18,8 @@ use serde_json::json;
 use sqlx::Row;
 use validator::Validate;
 
+use crate::handlers;
+
 //test
 #[get("/posts")]
 async fn posts(_: jwt_auth::JwtMiddleware) -> impl Responder {
@@ -29,10 +31,16 @@ async fn register_user_handler(
     body: web::Json<RegisterUserSchema>,
     data: web::Data<AppState>,
 ) -> impl Responder {
+
+
+    //validate Data first
+
     if let Err(validation_error) = body.validate() {
         return HttpResponse::BadRequest().json(validation_error);
     }
 
+
+    //check if user exists
     let exists: bool = sqlx::query("SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)")
         .bind(body.username.to_string())
         .fetch_one(&data.db)
@@ -40,19 +48,24 @@ async fn register_user_handler(
         .unwrap()
         .get(0);
 
+
+    // if it does send an error
     if exists {
         return HttpResponse::Conflict().json(
             serde_json::json!({"status": "fail","message": "User with that email already exists"}),
         );
     }
 
+    //generatre salt string using Os Random
     let salt = SaltString::generate(&mut OsRng);
 
+    //getting the password user written, and hashing it
     let hashed_password: String = Argon2::default()
         .hash_password(body.password.as_bytes(), &salt)
         .expect("Error while hashing password")
         .to_string();
 
+    // query the user
     let query_result: Result<User, _> = sqlx::query_as!(
         User,
         "INSERT INTO users (username,hashed_password) VALUES ($1, $2) RETURNING *",
@@ -62,6 +75,8 @@ async fn register_user_handler(
     .fetch_one(&data.db)
     .await;
 
+
+    // pattern matching for the user
     match query_result {
         Ok(user) => {
             let user_response = serde_json::json!({"status": "success","data": serde_json::json!({
@@ -185,7 +200,16 @@ fn filter_user_record(user: &User) -> FilteredUser {
     }
 }
 
+
+
+//reimplement routes here.
+//TODO
+// Implement these into its own files.
+
+
+
 pub fn config(conf: &mut web::ServiceConfig) {
+    // handlers::user::register();
     let scope = web::scope("/api")
         .service(register_user_handler)
         .service(login_user_handler)
