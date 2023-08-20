@@ -1,12 +1,12 @@
 extern crate validator_derive;
 
 mod config;
+mod handlers;
 mod jwt_auth;
 mod logger;
 mod models;
 mod response;
 mod routes;
-mod handlers;
 
 use std::io;
 use std::thread::sleep;
@@ -64,8 +64,6 @@ async fn main() -> std::io::Result<()> {
             }
         }
     };
-
-
 
     logger::log(LoggerType::Trace);
 
