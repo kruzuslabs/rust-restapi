@@ -1,4 +1,4 @@
-pub mod CRUD {
+pub mod crud {
     //create a mew resource
     pub fn create() {}
 
