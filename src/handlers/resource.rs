@@ -1,14 +1,32 @@
+//TODO more
+
 pub mod crud {
-    //create a mew resource
-    pub fn create() {}
 
-    //get one by ID
-    pub fn read_one() {}
+    use actix_web::{get, HttpResponse, Responder};
+    use serde_json::json;
 
-    //return a list of resources
-    pub fn read_many() {}
+    #[get("/resources")]
+    pub async fn create() -> impl Responder {
+        HttpResponse::Ok().json(json!({"status": "success"}))
+    }
 
-    pub fn update() {}
+    #[get("/resources/id")]
+    pub async fn update_by_id() -> impl Responder {
+        HttpResponse::Ok().json(json!({"status": "success"}))
+    }
 
-    pub fn delete() {}
+    #[get("/resource/id")]
+    pub async fn delete_id() -> impl Responder {
+        HttpResponse::Ok().json(json!({"status": "success"}))
+    }
+
+    #[get("/resources/user/id")]
+    pub async fn read_all() -> impl Responder {
+        HttpResponse::Ok().json(json!({"status": "success"}))
+    }
+
+    #[get("/posts")]
+    pub async fn read_one() -> impl Responder {
+        HttpResponse::Ok().json(json!({"status": "success"}))
+    }
 }
